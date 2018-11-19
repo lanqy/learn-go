@@ -8,13 +8,13 @@ import (
 )
 
 type readOp struct {
-	key int
+	key  int
 	resp chan int
 }
 
 type writeOp struct {
-	key int
-	val int
+	key  int
+	val  int
 	resp chan bool
 }
 
@@ -29,9 +29,9 @@ func main() {
 		var state = make(map[int]int)
 		for {
 			select {
-			case read := <- reads:
+			case read := <-reads:
 				read.resp <- state[read.key]
-			case write := <- writes:
+			case write := <-writes:
 				state[write.key] = write.val
 				write.resp <- true
 			}
@@ -41,12 +41,11 @@ func main() {
 	for r := 0; r < 100; r++ {
 		go func() {
 			for {
-				read := &readOp {
-					key: rand.Intn(5)
-					resp: make(chan int)
-				}
+				read := &readOp{
+					key:  rand.Intn(5),
+					resp: make(chan int)}
 				reads <- read
-				<- read.resp
+				<-read.resp
 				atomic.AddUint64(&readOps, 1)
 				time.Sleep(time.Millisecond)
 			}
@@ -57,13 +56,12 @@ func main() {
 		go func() {
 			for {
 				write := &writeOp{
-					key: rand.Intn(5)
-					val: rand.Intn(100)
-					resp: make(chan bool)
-				}
+					key:  rand.Intn(5),
+					val:  rand.Intn(100),
+					resp: make(chan bool)}
 
 				writes <- write
-				<- write.resp
+				<-write.resp
 				atomic.AddUint64(&writeOps, 1)
 				time.Sleep(time.Millisecond)
 			}
